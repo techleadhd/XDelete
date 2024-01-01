@@ -7,6 +7,7 @@ const deleteAllTweets = async () => {
       await new Promise(resolve => setTimeout(resolve, 250));
       document.querySelector('[role="menuitem"]')?.click();
       document.querySelector('[data-testid="confirmationSheetConfirm"]')?.click();
+      // Deletes once every 3s. Adjust faster if needed.
       await new Promise(resolve => setTimeout(resolve, 3000));
     }
   }
