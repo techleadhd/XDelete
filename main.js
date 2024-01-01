@@ -3,14 +3,16 @@ const deleteAllTweets = async () => {
 
   const getDeleteButtons = () => Array.from(document.querySelectorAll('[data-testid="tweet"] [data-testid="caret"]'));
 
-  let deleteButtons = getDeleteButtons();
+  const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-  while (deleteButtons.length - noDeleteSet.size > 0) {
+  while (true) {
+    const deleteButtons = getDeleteButtons().filter(button => !noDeleteSet.has(button));
+
+    if (deleteButtons.length === 0) break;
+
     for (const button of deleteButtons) {
-      if (noDeleteSet.has(button)) continue;
-
       button.click();
-      await new Promise(resolve => setTimeout(resolve, 250));
+      await delay(250);
 
       const menuItems = Array.from(document.querySelectorAll('[role="menuitem"]'));
       const deleteOption = menuItems.find(item => item.textContent === 'Delete');
@@ -18,15 +20,21 @@ const deleteAllTweets = async () => {
       if (deleteOption) {
         deleteOption.click();
         document.querySelector('[data-testid="confirmationSheetConfirm"]')?.click();
-        await new Promise(resolve => setTimeout(resolve, 3000));
+        await delay(3000);
       } else {
-        button.click();
         noDeleteSet.add(button);
-        await new Promise(resolve => setTimeout(resolve, 500));
+
+        const tweetContainer = button.closest('[data-testid="tweet"]');
+        const unretweetButton = tweetContainer?.querySelector('[data-testid="unretweet"]');
+
+        if (unretweetButton) {
+          unretweetButton.click();
+          await delay(250);
+          document.querySelector('[data-testid="unretweetConfirm"]')?.click();
+          await delay(3000);
+        }
       }
     }
-
-    deleteButtons = getDeleteButtons();
   }
 
   console.log('All tweets deleted successfully!');
