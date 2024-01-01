@@ -2,7 +2,7 @@ Script to delete all X / Twitter tweets. (Credits go to ChatGPT, I didn't write 
 
 ### How to run:
 - Open Chrome and go to your X profile (https://x.com/USERNAME/with_replies)
-- Open Chrome Developer Console. Copy/Paste the code from *main.js*
+- Open Chrome Developer Console. Copy/Paste the code:
 
 ```
 const deleteAllTweets = async () => {
