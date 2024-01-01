@@ -6,18 +6,16 @@ Script to delete all X / Twitter tweets. (Credits go to ChatGPT, I didn't write 
 
 ```
 const deleteAllTweets = async () => {
-  const noDeleteSet = new Set();
-
+  const processedButtons = new Set();
   const getDeleteButtons = () => Array.from(document.querySelectorAll('[data-testid="tweet"] [data-testid="caret"]'));
-
   const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
   while (true) {
-    const deleteButtons = getDeleteButtons().filter(button => !noDeleteSet.has(button));
-
+    const deleteButtons = getDeleteButtons().filter(button => !processedButtons.has(button));
     if (deleteButtons.length === 0) break;
 
     for (const button of deleteButtons) {
+      processedButtons.add(button);
       button.click();
       await delay(250);
 
@@ -29,8 +27,6 @@ const deleteAllTweets = async () => {
         document.querySelector('[data-testid="confirmationSheetConfirm"]')?.click();
         await delay(3000);
       } else {
-        noDeleteSet.add(button);
-
         const tweetContainer = button.closest('[data-testid="tweet"]');
         const unretweetButton = tweetContainer?.querySelector('[data-testid="unretweet"]');
 
