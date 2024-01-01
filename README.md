@@ -1,4 +1,4 @@
-Script to delete all X posts. (Credits go to ChatGPT, I didn't write any of this code)
+Script to delete all X / Twitter tweets. (Credits go to ChatGPT, I didn't write any of this code)
 
 ### How to run:
 - Open Chrome and go to your X profile (https://x.com/USERNAME/with_replies)
