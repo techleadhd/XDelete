@@ -17,6 +17,7 @@ const deleteAllTweets = async () => {
 
       if (deleteOption) {
         deleteOption.click();
+        await delay(250);
         document.querySelector('[data-testid="confirmationSheetConfirm"]')?.click();
         await delay(3000);
       } else {
