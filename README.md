@@ -6,56 +6,88 @@ Script to delete all X / Twitter tweets. (Credits go to ChatGPT, I didn't write 
 
 ```
 const deleteAllTweets = async () => {
-  const processedButtons = new Set();
-  const getDeleteButtons = () => Array.from(document.querySelectorAll('[data-testid="tweet"] [data-testid="caret"]'));
-  const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-  const scrollToEnd = () => window.scrollTo(0, document.body.scrollHeight);
+  const processed = new Set();
+  const selectors = {
+    tweet: '[data-testid="tweet"]',
+    caret: '[data-testid="caret"]',
+    menuItem: '[role="menuitem"]',
+    deleteConfirm: '[data-testid="confirmationSheetConfirm"]',
+    unretweet: '[data-testid="unretweet"]',
+    unretweetConfirm: '[data-testid="unretweetConfirm"]'
+  };
 
-  const attemptDelete = async (button) => {
-    processedButtons.add(button);
-    button.click();
-    await delay(250 + Math.random() * 250); // Adding some randomness to mimic human behavior
+  const delay = ms => {
+    const jitter = ms * 0.25;
+    const actual = ms + (Math.random() * jitter * 2 - jitter);
+    return new Promise(resolve => setTimeout(resolve, actual));
+  };
 
-    const menuItems = Array.from(document.querySelectorAll('[role="menuitem"]'));
-    const deleteOption = menuItems.find(item => item.textContent.includes('Delete'));
+  const getButtons = () =>
+    Array.from(document.querySelectorAll(`${selectors.tweet} ${selectors.caret}`))
+      .filter(b => !processed.has(b));
 
-    if (deleteOption) {
-      deleteOption.click();
-      await delay(250 + Math.random() * 250);
-      document.querySelector('[data-testid="confirmationSheetConfirm"]')?.click();
-      await delay(3000 + Math.random() * 1000);
-    } else {
-      const tweetContainer = button.closest('[data-testid="tweet"]');
-      const unretweetButton = tweetContainer?.querySelector('[data-testid="unretweet"]');
-      if (unretweetButton) {
-        unretweetButton.click();
-        await delay(250 + Math.random() * 250);
-        document.querySelector('[data-testid="unretweetConfirm"]')?.click();
-        await delay(3000 + Math.random() * 1000);
+  const scrollToEnd = () =>
+    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+
+  const attemptDelete = async button => {
+    try {
+      processed.add(button);
+      button.click();
+      await delay(250);
+
+      const menuItems = Array.from(document.querySelectorAll(selectors.menuItem));
+      const deleteOption = menuItems.find(item => item.textContent.includes('Delete'));
+
+      if (deleteOption) {
+        deleteOption.click();
+        await delay(250);
+        const confirm = document.querySelector(selectors.deleteConfirm);
+        if (confirm) {
+          confirm.click();
+          await delay(2000);
+          return true;
+        }
       }
+
+      const tweet = button.closest(selectors.tweet);
+      const unretweet = tweet?.querySelector(selectors.unretweet);
+      if (unretweet) {
+        unretweet.click();
+        await delay(250);
+        const confirm = document.querySelector(selectors.unretweetConfirm);
+        if (confirm) {
+          confirm.click();
+          await delay(2000);
+          return true;
+        }
+      }
+    } catch (err) {
+      console.error('Error attempting to delete/unretweet:', err);
     }
+    return false;
   };
 
   while (true) {
-    const deleteButtons = getDeleteButtons().filter(button => !processedButtons.has(button));
-    if (deleteButtons.length === 0) {
+    const buttons = getButtons();
+    if (!buttons.length) {
       scrollToEnd();
-      await delay(5000); // Wait for more tweets to load
-      if (getDeleteButtons().filter(button => !processedButtons.has(button)).length === 0) {
-        break; // Exit if no new tweets are loaded
-      } else {
-        continue; // Otherwise, continue processing new tweets
-      }
+      await delay(5000);
+      if (!getButtons().length) break;
+      continue;
     }
 
-    for (const button of deleteButtons) {
+    for (const button of buttons) {
       await attemptDelete(button);
+      await delay(500); // brief cooldown between deletions
     }
+
+    scrollToEnd();
+    await delay(2000); // help load more tweets
   }
 
-  console.log('All tweets deleted successfully!');
+  console.log('All tweets processed (deleted or unretweeted).');
 };
 
-deleteAllTweets();
+deleteAllTweets().catch(err => console.error('Script failed:', err));
 ```
 <img width="813" alt="Screenshot 2023-12-31 at 7 18 45 PM" src="https://github.com/techleadhd/XDelete/assets/61847557/473165c5-9b7c-4065-98fd-5856fcbfb3a8">
